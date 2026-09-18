@@ -33,6 +33,8 @@ read -p "是否启用Re-Kernel？(y/n，默认：n): " APPLY_REKERNEL
 APPLY_REKERNEL=${APPLY_REKERNEL:-n}
 read -p "是否启用内核级基带保护？(y/n，默认：n): " APPLY_BBG
 APPLY_BBG=${APPLY_BBG:-n}
+read -p "是否添加Unicode不可见字码点绕过漏洞修复补丁？(y/n，默认：y): " APPLY_UNICODE
+APPLY_UNICODE=${APPLY_UNICODE:-y}
 
 if [[ "$KSU_BRANCH" == "y" || "$KSU_BRANCH" == "Y" ]]; then
   KSU_TYPE="SukiSU Ultra"
@@ -61,6 +63,7 @@ echo "应用 Droidspaces 容器支持: $APPLY_DROIDSPACES"
 echo "启用ADIOS调度器: $APPLY_ADIOS"
 echo "启用Re-Kernel: $APPLY_REKERNEL"
 echo "启用内核级基带保护: $APPLY_BBG"
+echo "应用 Unicode 不可见字码点绕过漏洞修复补丁: $APPLY_UNICODE"
 echo "===================="
 echo
 
@@ -249,6 +252,15 @@ cd common
 wget https://github.com/cctv18/oppo_oplus_realme_sm8850/raw/refs/heads/main/other_patch/cve-2026-43499-rtmutex-6.12.patch
 patch -p1 -F 3 < cve-2026-43499-rtmutex-6.12.patch
 cd ..
+
+# 应用 Unicode 不可见字码点绕过漏洞修复补丁
+if [[ "$APPLY_UNICODE" == "y" || "$APPLY_UNICODE" == "Y" ]]; then
+  echo ">>> 应用 Unicode 不可见字码点绕过漏洞修复补丁..."
+  cd common
+  wget -q -O unicode_bypass_fix.patch "https://raw.githubusercontent.com/Lixinru999/Action-Build/SukiSU-Ultra/patches/unicode_bypass_fix_6.1+.patch"
+  patch -p1 --forward < unicode_bypass_fix.patch || true
+  cd ..
+fi
 
 # 6.12内核Rust配置
 echo "CONFIG_RUST=y" >> ./common/arch/arm64/configs/gki_defconfig
